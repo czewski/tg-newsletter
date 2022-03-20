@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"os"
 )
 
 func CreateServer() {
@@ -12,7 +11,7 @@ func CreateServer() {
 
 	fmt.Println("Starting Server")
 
-	if err := http.ListenAndServe(":"+os.Getenv("PORT"), nil); err != nil {
+	if err := http.ListenAndServe(":443", nil); err != nil {
 		log.Fatal(err)
 	}
 }
