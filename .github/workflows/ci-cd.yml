@@ -1,6 +1,3 @@
-#test file
-image: golang:latest
-
 on: push
 
 variables:
