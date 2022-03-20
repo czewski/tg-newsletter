@@ -1,6 +1,7 @@
 #test file
 image: golang:latest
 
+on: push
 
 variables:
   REPO_NAME: github.com/czewski/tg-newsletter
