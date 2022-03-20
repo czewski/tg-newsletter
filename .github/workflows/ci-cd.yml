@@ -1,0 +1,36 @@
+#test file
+image: golang:latest
+
+
+variables:
+  REPO_NAME: github.com/czewski/tg-newsletter
+  APP: main.bin
+  DIRDEPLOY: /root/
+
+before_script:
+  - export GOPRIVATE="github.com/czewski/*"
+  - mkdir -p $GOPATH/src/$(dirname $REPO_NAME)
+  - ln -svf $DIRDEPLOY $GOPATH/src/$REPO_NAME
+  - cd $GOPATH/src/$REPO_NAME
+
+stages:
+  - build
+  - deploy
+
+compile:
+  stage: build
+  script:
+    - go build -race -ldflags "-extldflags '-static'" -o $DIRDEPLOY/$APP
+  artifacts:
+    paths:
+      - $APP
+
+
+deploy_staging:
+  stage: deploy
+  script:
+    - ssh ${{secrets.SSH_USERNAME}}@${{secrets.SSH_HOST}} "mkdir -p $DIRDEPLOY"
+    - scp $DIRDEPLOY/$APP ${{secrets.SSH_HOST}}:$DIRDEPLOY
+
+  environment:
+    name: ${{secrets.SSH_HOST}}
