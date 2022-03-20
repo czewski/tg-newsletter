@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: toggle workflow command echoing
-      run: |
-        go build -race -ldflags "-extldflags '-static'" -o $DIRDEPLOY/$APP
-        ssh ${{secrets.SSH_USERNAME}}@${{secrets.SSH_HOST}} "mkdir -p $DIRDEPLOY"
-        scp $DIRDEPLOY/$APP ${{secrets.SSH_HOST}}:$DIRDEPLOY
+        run: |
+          go build -race -ldflags "-extldflags '-static'" -o $DIRDEPLOY/$APP
+          ssh ${{secrets.SSH_USERNAME}}@${{secrets.SSH_HOST}} "mkdir -p $DIRDEPLOY"
+          scp $DIRDEPLOY/$APP ${{secrets.SSH_HOST}}:$DIRDEPLOY
