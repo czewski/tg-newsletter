@@ -43,16 +43,16 @@ func SendMessage(article constants.MessageToSend) (err error) {
 	return nil
 }
 
-func ProcessMessage(feed constants.Article) (message constants.MessageToSend, err error) {
+func ProcessMessage(feed constants.Article, search string) (message constants.MessageToSend, err error) {
 
 	date, _ := time.Parse("2006-01-02t15:04:05z", feed.PublishedAt)
 
 	message.ChatID = 237725036
 	message.DisableWebPagePreview = false
 	message.ParseMode = "HTML"
-	message.Text = "<b> - " + strings.Title(feed.Title) + "</b>\n\n"
+	message.Text = "<b> - [" + search + "] " + strings.Title(feed.Title) + "</b>\n\n"
 	message.Text += strings.ToUpper(feed.Description[:1]) + feed.Description[1:] + "\n\n"
-	message.Text += "<i> - " + date.Format("2006-01-02") + "</i>\n\n"
+	message.Text += "<i> - Publicado em: " + date.Format("2006-01-02") + "</i>\n\n"
 	message.Text += "<a href=" + `"` + strings.ReplaceAll(strings.ToLower(feed.URL), " ", "") + `"` + ">Link.</a>"
 
 	return message, nil
