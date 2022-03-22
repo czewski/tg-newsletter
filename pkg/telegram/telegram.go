@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"strings"
 	"time"
@@ -12,9 +13,9 @@ import (
 	"github.com/czewski/tg-newsletter/pkg/constants"
 )
 
-func SendMessage(article constants.MessageToSend) (err error) {
+func SendUniqueMessage(article constants.MessageToSend) (err error) {
 	url := `https://api.telegram.org/bot` + constants.ReadKey("botKey") + "/sendMessage"
-	method := "GET"
+	method := "POST"
 
 	client := &http.Client{Timeout: 10 * time.Second}
 
@@ -56,4 +57,45 @@ func ProcessMessage(feed constants.Article, search string) (message constants.Me
 	message.Text += "<a href=" + `"` + strings.ReplaceAll(strings.ToLower(feed.URL), " ", "") + `"` + ">Link.</a>"
 
 	return message, nil
+}
+
+func GetMessages(lastUpdateID string) (resp constants.MessageReceived, err error) {
+	url := `https://api.telegram.org/bot` + constants.ReadKey("botKey") + "/getUpdates"
+	method := "GET"
+
+	client := &http.Client{Timeout: 10 * time.Second}
+
+	req, err := http.NewRequest(method, url, nil)
+	if err != nil {
+		fmt.Println(err)
+		return resp, err
+	}
+
+	q := req.URL.Query()
+	q.Add("limit", "1")
+	q.Add("offset", lastUpdateID)
+	req.URL.RawQuery = q.Encode()
+
+	req.Header.Add("Accept", "application/json")
+
+	res, err := client.Do(req)
+	if err != nil {
+		fmt.Println(err)
+		return resp, err
+	}
+	defer res.Body.Close()
+
+	if res.StatusCode != 200 {
+		return resp, errors.New("erro ao buscar mensagem")
+	}
+
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	err = json.Unmarshal(body, &resp)
+
+	return resp, nil
 }

@@ -1,16 +1,13 @@
 package main
 
 import (
-	"context"
-	"crypto/tls"
 	"flag"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"time"
 
-	"golang.org/x/crypto/acme/autocert"
+	"github.com/czewski/tg-newsletter/pkg/telegram"
 )
 
 const (
@@ -64,59 +61,8 @@ func parseFlags() {
 func main() {
 	fmt.Println("Iniciando processo do servidor, as: " + time.Now().String())
 	//server.CreateServer()
-
-	parseFlags()
-	var m *autocert.Manager
-
-	var httpsSrv *http.Server
-	if flgProduction {
-		hostPolicy := func(ctx context.Context, host string) error {
-			// Note: change to your real host
-			allowedHost := "www.czewski.me"
-			if host == allowedHost {
-				return nil
-			}
-			return fmt.Errorf("acme/autocert: only %s host is allowed", allowedHost)
-		}
-
-		dataDir := "/home/tg-newsletter/cache"
-		m = &autocert.Manager{
-			Prompt:     autocert.AcceptTOS,
-			HostPolicy: hostPolicy,
-			Cache:      autocert.DirCache(dataDir),
-		}
-
-		httpsSrv = makeHTTPServer()
-		httpsSrv.Addr = ":443"
-		httpsSrv.TLSConfig = &tls.Config{GetCertificate: m.GetCertificate}
-
-		go func() {
-			fmt.Printf("Starting HTTPS server on %s\n", httpsSrv.Addr)
-			err := httpsSrv.ListenAndServeTLS("", "")
-			if err != nil {
-				log.Fatalf("httpsSrv.ListendAndServeTLS() failed with %s", err)
-			}
-		}()
-	}
-
-	var httpSrv *http.Server
-	if flgRedirectHTTPToHTTPS {
-		httpSrv = makeHTTPToHTTPSRedirectServer()
-	} else {
-		httpSrv = makeHTTPServer()
-	}
-	// allow autocert handle Let's Encrypt callbacks over http
-	if m != nil {
-		httpSrv.Handler = m.HTTPHandler(httpSrv.Handler)
-	}
-
-	httpSrv.Addr = httpPort
-	fmt.Printf("Starting HTTP server on %s\n", httpPort)
-	err := httpSrv.ListenAndServe()
-	if err != nil {
-		log.Fatalf("httpSrv.ListenAndServe() failed with %s", err)
-	}
-
+	//just make the server get every x seconds, fuck https
+	telegram.GetMessages("165466380")
 }
 
 /*
