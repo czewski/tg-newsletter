@@ -62,7 +62,8 @@ func main() {
 	fmt.Println("Iniciando processo do servidor, as: " + time.Now().String())
 	//server.CreateServer()
 	//just make the server get every x seconds, fuck https
-	telegram.GetMessages("165466380")
+	//telegram.GetMessages("165466380")
+	telegram.Sender()
 }
 
 /*

@@ -11,7 +11,44 @@ import (
 	"time"
 
 	"github.com/czewski/tg-newsletter/pkg/constants"
+	"github.com/czewski/tg-newsletter/pkg/news"
 )
+
+func Sender() {
+
+	//Busca atualização de mensagem
+	message, err := GetMessages("165466380")
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+
+	//Verifica o comando recebido
+	for _, val := range message.Result {
+		if val.Message.Entities[0].Type == "bot_command" {
+			if strings.Contains(val.Message.Text, "/now") {
+				field := val.Message.Text[5:]
+				news, err := news.ProcessNews(field)
+				if err != nil {
+					fmt.Print(err.Error())
+				}
+
+				for _, v := range news.Articles {
+					toSend, err := ProcessNewsToMessage(v, field)
+					if err != nil {
+						fmt.Print(err.Error())
+					}
+
+					err = SendUniqueMessage(toSend)
+					if err != nil {
+						fmt.Print(err.Error())
+					}
+				}
+
+			}
+
+		}
+	}
+}
 
 func SendUniqueMessage(article constants.MessageToSend) (err error) {
 	url := `https://api.telegram.org/bot` + constants.ReadKey("botKey") + "/sendMessage"
@@ -44,9 +81,9 @@ func SendUniqueMessage(article constants.MessageToSend) (err error) {
 	return nil
 }
 
-func ProcessMessage(feed constants.Article, search string) (message constants.MessageToSend, err error) {
+func ProcessNewsToMessage(feed constants.Article, search string) (message constants.MessageToSend, err error) {
 
-	date, _ := time.Parse("2006-01-02t15:04:05z", feed.PublishedAt)
+	date, _ := time.Parse("2006-01-02T15:04:05Z", feed.PublishedAt)
 
 	message.ChatID = 237725036
 	message.DisableWebPagePreview = false
