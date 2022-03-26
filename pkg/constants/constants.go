@@ -29,6 +29,8 @@ func ReadKey(which string) (token string) {
 		token = Keys.BotKey
 	} else if which == "newsKey" {
 		token = Keys.NewsKey
+	} else if which == "mongoPwd" {
+		token = Keys.MongoPwd
 	} else {
 		fmt.Println("Deu Ruim")
 	}
@@ -38,8 +40,9 @@ func ReadKey(which string) (token string) {
 
 //News API ---------------------------------------------------------------
 type Keys struct {
-	BotKey  string `json:"botKey"`
-	NewsKey string `json:"newsKey"`
+	BotKey   string `json:"botKey"`
+	NewsKey  string `json:"newsKey"`
+	MongoPwd string `json:"mongoPwd"`
 }
 
 type NewsResult struct {
