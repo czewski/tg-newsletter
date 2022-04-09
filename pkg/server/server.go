@@ -2,7 +2,6 @@ package server
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 )
 
@@ -12,7 +11,7 @@ func CreateServer() {
 	fmt.Println("Starting Server")
 
 	if err := http.ListenAndServe(":443", nil); err != nil {
-		log.Fatal(err)
+		fmt.Println(err)
 	}
 }
 

@@ -23,7 +23,7 @@ func ProcessNews(field string) (resp constants.NewsResult, err error) {
 
 	q := req.URL.Query()
 	q.Add("q", field)
-	q.Add("from", time.Now().AddDate(0, 0, -15).Format("2006-01-02"))
+	q.Add("from", time.Now().AddDate(0, 0, -10).Format("2006-01-02"))
 	q.Add("to", time.Now().AddDate(0, 0, 0).Format("2006-01-02"))
 	q.Add("sortBy", "popularity")
 	q.Add("pageSize", "5")

@@ -14,9 +14,10 @@ import (
 	"github.com/czewski/tg-newsletter/pkg/news"
 )
 
+//Sender unico
 func Sender() {
-
 	//Busca atualização de mensagem
+	// o que eh esse numero
 	message, err := GetMessages("165466380")
 	if err != nil {
 		fmt.Println(err.Error())
