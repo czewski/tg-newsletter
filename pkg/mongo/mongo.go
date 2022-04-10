@@ -124,3 +124,46 @@ func CheckSentNews(userID string, client *mongo.Client) (sent []string, err erro
 	}
 	return result.Fila, err
 }
+
+//CheckLastSentTelegram - Busca a ultima mensagem buscada no tg, para x usuario
+func CheckLastSentTelegram(userID string, client *mongo.Client) (lastread string, err error) {
+	collection := client.Database("filas").Collection("fila1")
+
+	var result struct {
+		User     string `bson:"user"`
+		LastRead string `bson:"lastread"`
+	}
+
+	filter := bson.D{{"user", userID}}
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	//Later need to change &result to a Struct in the format i need
+	err = collection.FindOne(ctx, filter).Decode(&result)
+	if err == mongo.ErrNoDocuments {
+		// Do something when no record was found
+		fmt.Println("record does not exist")
+	} else if err != nil {
+		return result.LastRead, err
+	}
+	return result.LastRead, err
+}
+
+//UpdateLastRead - Update last read from telegram
+func UpdateLastRead(userID string, newLastRead string, client *mongo.Client) (err error) {
+	collection := client.Database("filas").Collection("fila1")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	update := bson.M{"$set": bson.M{"lastread": newLastRead}}
+
+	_, err = collection.UpdateOne(ctx, bson.M{"user": userID}, update)
+
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+
+	return err
+}

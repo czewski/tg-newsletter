@@ -3,23 +3,20 @@ package main
 import (
 	"context"
 	"fmt"
+	"strconv"
+	"strings"
 	"time"
 
+	"github.com/czewski/tg-newsletter/pkg/bot"
 	mongoCon "github.com/czewski/tg-newsletter/pkg/mongo"
-	"github.com/czewski/tg-newsletter/pkg/news"
 	"github.com/czewski/tg-newsletter/pkg/telegram"
 )
 
 func main() {
 	fmt.Println("Iniciando processo do servidor, as: " + time.Now().Format("2006-01-02 15:04:05"))
-	//server.CreateServer()
-	//just make the server get every x seconds, fuck https
-	//telegram.GetMessages("165466380")
-	//telegram.Sender()
-	client := mongoCon.ConnectDB()
 
-	//Busca fila
-	fila := mongoCon.ObtainResult("237725036", client)
+	//Client mongoDB
+	client := mongoCon.ConnectDB()
 
 	//Handle disconnect
 	defer func() {
@@ -28,50 +25,54 @@ func main() {
 		}
 	}()
 
-	fmt.Println(fila)
+	//Busca no mongo o LastSent
+	lastread, err := mongoCon.CheckLastSentTelegram("237725036", client)
+	if err != nil {
+		fmt.Println(err)
+	}
 
-	for _, v := range fila {
-		//Seleciona news baseada na fila
-		resp, _ := news.ProcessNews(v)
+	//Check last sent to bot
+	resp, err := telegram.GetMessages(lastread)
+	if err != nil {
+		fmt.Println(err)
+	}
 
-		//Envia news pro usuario
-		for _, article := range resp.Articles {
-			//Formata mensagem
-			message, err := telegram.ProcessNewsToMessage(article, v)
-			if err != nil {
-				fmt.Println(err)
+	//Check message from user, see if any command was added
+	if len(resp.Result) <= 0 {
+		//Return?????? - Adicionar funcao pra retornar ao inicio do loop (com timer entre chamadas)
+		return
+	}
+
+	for _, message := range resp.Result {
+		userID := strconv.Itoa(message.Message.From.ID)
+
+		//Faz algo com a mensagem
+		if message.Message.Entities[0].Type == "bot_command" {
+			uniqueMessage := message.Message.Text
+
+			//Add - Adiciona a fila
+			if strings.Contains(uniqueMessage, "/add") {
+				bot.AddToFeed(userID, uniqueMessage[4:], client)
 			}
 
-			//Verifica se ja foi enviado
-			sent, err := mongoCon.CheckSentNews("237725036", client)
-			var exist bool
-			for _, v := range sent {
-				if article.URL == v {
-					exist = true
-					break
-				}
-			}
-			if exist == true {
-				continue
+			//Now - Noticias referentes a x mensagem
+			if strings.Contains(uniqueMessage, "/now") {
+				bot.Now(userID, uniqueMessage[4:], client)
 			}
 
-			//Envia para o telegram
-			err = telegram.SendUniqueMessage(message)
-			if err != nil {
-				fmt.Println(err)
-			}
-
-			//Salva link na fila de enviados para o usuario
-			err = mongoCon.InsertSentNewsToUser(article.URL, "237725036", client)
-			if err != nil {
-				fmt.Println(err)
+			//Feed - Chama sua fila
+			if strings.Contains(uniqueMessage, "/feed") {
+				bot.Feed(userID, client)
 			}
 		}
 
+		//Atualizar no mongo o lastread
+		err = mongoCon.UpdateLastRead(userID, strconv.Itoa(message.UpdateID+1), client)
+		if err != nil {
+			fmt.Println(err)
+		}
 	}
 
-	//Insere na fila
-	//mongoCon.InsertInCollection("237725036", "CPLE6", client)
 }
 
 /*

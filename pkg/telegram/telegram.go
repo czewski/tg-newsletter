@@ -110,7 +110,7 @@ func GetMessages(lastUpdateID string) (resp constants.MessageReceived, err error
 	}
 
 	q := req.URL.Query()
-	q.Add("limit", "1")
+	q.Add("limit", "5")
 	q.Add("offset", lastUpdateID)
 	req.URL.RawQuery = q.Encode()
 
